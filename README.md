@@ -12,20 +12,9 @@ BlogsPado is a modern Flutter + Firebase-powered blog app where users can share 
 - ❤️ Like posts with real-time like count
 - 💬 Comment on blog posts with real-time updates
 - 👥 Follow/Unfollow other users
-- 🧑‍💻 Profile view with avatar, follower/following count, and blogs
 - 🧭 Category filters and search functionality
-- 🖼 Asset-only cover images (no Firebase Storage)
 - 📶 Firestore-backed real-time sync
 - 🧠 State management using Provider
-
----
-
-## 🎯 Goals
-
-- Learn complete Firebase integration
-- Explore blog relations (user → posts, likes, comments)
-- Practice clean architecture and UI separation
-- Implement secure access control with Firestore rules
 
 ---
 
