@@ -176,10 +176,10 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                   onPressed: saveDetails,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: Colors.amber[600],
+                    backgroundColor: Colors.green,
                     textStyle: const TextStyle(fontSize: 16,color: Colors.black),
                   ),
-                  child: const Text("Save Details"),
+                  child: const Text("Save Details",style: TextStyle(color: Colors.white),),
                 ),
               ),
             ],
