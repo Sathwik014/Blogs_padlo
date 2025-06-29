@@ -81,6 +81,10 @@ BlogsPado is a modern Flutter + Firebase-powered blog app where users can share 
 ![WhatsApp Image 2025-06-29 at 11 44 07 PM (2)](ht![WhatsApp Image 2025-06-29 at 11 44 09 PM](https://github.com/user-attachments/assets/082b41dc-65cb-4138-99a7-c1b5eec03a81)
 tps://github.com/user-attachments/assets/adb4b36a-eeab-4b49-92ce-d32a8c210b3e)
 
+
+https://github.com/user-attachments/assets/7e3569aa-7f08-4147-88fa-8ef72728d7e9
+
+
 ---
 
 ## 🔥 Firestore Rules
