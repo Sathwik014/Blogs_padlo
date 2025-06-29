@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "54501462279",
+    "project_id": "blogslikho",
+    "storage_bucket": "blogslikho.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:54501462279:android:b245011db04bf25f1975a2",
+        "android_client_info": {
+          "package_name": "com.example.blogs_pado"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "54501462279-q7qad4f5bedhdcqucs3hjajteem4sp3k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8ZYj_2JrQTyrhSDnM4fUTM0RAot63EHE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "54501462279-q7qad4f5bedhdcqucs3hjajteem4sp3k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "54501462279-8chg4epaajavf0rpel4obnjjev3756dq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.blogsPado"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
