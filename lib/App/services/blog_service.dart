@@ -96,30 +96,24 @@ class BlogService {
     }
   }
 
-  // 📥 Get All Blogs
-  Stream<List<BlogModel>> getAllBlogs() {
+  // 🔁 Get all blogs with live updates
+  Stream<List<BlogModel>> getAllBlogsStream() {
     return _firestore
         .collection('blogs')
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) =>
-        snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return BlogModel.fromMap(doc.id, data);
-        }).toList());
+        snapshot.docs.map((doc) => BlogModel.fromMap(doc.id, doc.data() as Map<String, dynamic>)).toList());
   }
 
-  // 📥 Get Blogs by Author UID (for profile)
-  Stream<List<BlogModel>> getBlogsByUser(String uid) {
+// 📥 Get blogs by list of following user IDs
+  Stream<List<BlogModel>> getBlogsByFollowing(List<String> followingIds) {
     return _firestore
         .collection('blogs')
-        .where('authorId', isEqualTo: uid)
+        .where('authorId', whereIn: followingIds.isEmpty ? ['__dummy__'] : followingIds)
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) =>
-        snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return BlogModel.fromMap(doc.id, data);
-        }).toList());
+        snapshot.docs.map((doc) => BlogModel.fromMap(doc.id, doc.data() as Map<String, dynamic>)).toList());
   }
 }

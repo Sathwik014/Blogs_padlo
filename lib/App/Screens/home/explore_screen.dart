@@ -2,6 +2,7 @@ import 'package:blogs_pado/App/Screens/blog/Create_edit_Blog.dart';
 import 'package:blogs_pado/App/Screens/home/following_blogs.dart';
 import 'package:blogs_pado/App/Screens/home/profile_screen.dart';
 import 'package:blogs_pado/App/models/blog_model.dart';
+import 'package:blogs_pado/App/services/blog_service.dart';
 import 'package:blogs_pado/App/widgets/blog_tile.dart';
 import 'package:blogs_pado/App/widgets/settings.dart';
 import 'package:blogs_pado/Authentication/services/UserDetail.dart';
@@ -131,12 +132,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget buildHomeContent() {
-    // 🔄 Choose correct Firestore query
-    final blogsRef = FirebaseFirestore.instance
-        .collection('blogs')
-        .orderBy('timestamp', descending: true);
 
-    final Stream<QuerySnapshot> blogStream = blogsRef.snapshots();
+    final Stream<List<BlogModel>> blogStream = BlogService().getAllBlogsStream();
 
     return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,21 +204,15 @@ class _HomePageState extends State<HomePage> {
 
           // 📋 Blog List
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
+            child: StreamBuilder<List<BlogModel>>(
               stream: blogStream,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-                final allBlogs = snapshot.data!.docs.where((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final title = data['title']?.toLowerCase() ?? '';
-                  final category = data['category']?.toLowerCase() ?? '';
-                  final authorId = data['userId'] ?? '';
-
-                  final matchesSearch = title.contains(searchText);
-                  final matchesCategory = selectedCategory == 'All' || category == selectedCategory.toLowerCase();
-                  final isByOtherUser = authorId != userId;
-
+                final allBlogs = snapshot.data!.where((blog) {
+                  final matchesSearch = blog.title.toLowerCase().contains(searchText);
+                  final matchesCategory = selectedCategory == 'All' || blog.category.toLowerCase() == selectedCategory.toLowerCase();
+                  final isByOtherUser = blog.authorId != userId;
                   return matchesSearch && matchesCategory && isByOtherUser;
                 }).toList();
 
@@ -238,36 +229,15 @@ class _HomePageState extends State<HomePage> {
                 return ListView.builder(
                   itemCount: allBlogs.length,
                   itemBuilder: (context, index) {
-                    final blogDoc = allBlogs[index];
-                    final blogData = blogDoc.data() as Map<String, dynamic>;
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       elevation: 3,
-                      child: BlogTile(
-                        blog: BlogModel(
-                          blogId: blogDoc.id,
-                          authorId: blogData['authorId'] ?? '',
-                          authorName: blogData['authorName'] ?? 'Anonymous',
-                          title: blogData['title'] ?? 'Untitled',
-                          content: blogData['content'] ?? '',
-                          description: blogData['description'] ?? '',
-                          timestamp: (blogData['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
-                          likes: List<String>.from(blogData['likes'] ?? []),
-                          pinned: blogData['pinned'] ?? false,
-                          category: blogData['category'] ?? 'work',
-                          imageUrl: blogData['imageUrl'] is List
-                              ? (blogData['imageUrl'] as List).isNotEmpty
-                              ? blogData['imageUrl'][0]
-                              : ''
-                              : (blogData['imageUrl'] ?? ''),
-                          authorPhotoUrl: blogData['authorPhotoUrl'] ?? '',
-                        ),
-                      ),
+                      child: BlogTile(blog: allBlogs[index]),
                     );
                   },
                 );
               },
-            ),
+            )
           ),
         ],
       );
