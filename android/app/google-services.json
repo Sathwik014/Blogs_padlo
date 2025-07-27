@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "54501462279-edpflg43nioi6ke3s2sh5rot3clneurf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.blogs_pado",
+            "certificate_hash": "e2aa01bcf776620f4bd2eead992d39e7bccdcd2e"
+          }
+        },
+        {
           "client_id": "54501462279-q7qad4f5bedhdcqucs3hjajteem4sp3k.apps.googleusercontent.com",
           "client_type": 3
         }

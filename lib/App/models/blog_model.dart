@@ -31,7 +31,6 @@ class BlogModel {
   });
 
   factory BlogModel.fromMap(String id, Map<String, dynamic> data) {
-    print("Parsing BlogModel from Firestore: $data");
     return BlogModel(
       blogId: id,
       authorId: data['authorId'] ?? '',

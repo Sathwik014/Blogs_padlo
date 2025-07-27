@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:blogs_pado/App/services/user_service.dart';
 
 class FollowButton extends StatefulWidget {
   final String targetUserId;
@@ -18,6 +18,7 @@ class FollowButton extends StatefulWidget {
 
 class _FollowButtonState extends State<FollowButton> {
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+  final _userService = UserService();
   bool isFollowing = false;
   bool isLoading = false;
 
@@ -27,49 +28,20 @@ class _FollowButtonState extends State<FollowButton> {
     if (widget.initialIsFollowing != null) {
       isFollowing = widget.initialIsFollowing!;
     } else {
-      checkFollowingStatus();
+      _initFollowState();
     }
   }
 
-  Future<void> checkFollowingStatus() async {
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUserId)
-        .get();
-
-    final following = List<String>.from(doc.data()?['following'] ?? []);
-    setState(() {
-      isFollowing = following.contains(widget.targetUserId);
-    });
+  Future<void> _initFollowState() async {
+    final result = await _userService.isFollowing(currentUserId, widget.targetUserId);
+    if (mounted) {
+      setState(() => isFollowing = result);
+    }
   }
 
-  Future<void> toggleFollow() async {
+  Future<void> _handleToggleFollow() async {
     setState(() => isLoading = true);
-    final usersRef = FirebaseFirestore.instance.collection('users');
-
-    final userDoc = usersRef.doc(currentUserId);
-    final targetDoc = usersRef.doc(widget.targetUserId);
-
-    final batch = FirebaseFirestore.instance.batch();
-
-    if (isFollowing) {
-      batch.update(userDoc, {
-        'following': FieldValue.arrayRemove([widget.targetUserId])
-      });
-      batch.update(targetDoc, {
-        'followers': FieldValue.arrayRemove([currentUserId])
-      });
-    } else {
-      batch.update(userDoc, {
-        'following': FieldValue.arrayUnion([widget.targetUserId])
-      });
-      batch.update(targetDoc, {
-        'followers': FieldValue.arrayUnion([currentUserId])
-      });
-    }
-
-    await batch.commit();
-
+    await _userService.toggleFollow(currentUserId, widget.targetUserId);
     if (mounted) {
       setState(() {
         isFollowing = !isFollowing;
@@ -83,7 +55,7 @@ class _FollowButtonState extends State<FollowButton> {
     if (currentUserId == widget.targetUserId) return const SizedBox();
 
     return ElevatedButton(
-      onPressed: isLoading ? null : toggleFollow,
+      onPressed: isLoading ? null : _handleToggleFollow,
       style: ElevatedButton.styleFrom(
         backgroundColor: isFollowing ? Colors.blue : Colors.grey[700],
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),

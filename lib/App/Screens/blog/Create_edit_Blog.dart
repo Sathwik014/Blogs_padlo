@@ -1,6 +1,5 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:blogs_pado/App/services/blog_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -48,30 +47,17 @@ class _NewblogState extends State<Newblog> {
     );
 
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      final photoUrl = userDoc['profilePicUrl'] ?? '';
-
       final contentJson = _quillController.document.toDelta().toJson();
 
-      final blogData = {
-        'title': _titleController.text.trim(),
-        'description': _descController.text.trim(),
-        'content': contentJson,
-        'timestamp': Timestamp.fromDate(_blogDate),
-        'category': _selectedCategory,
-        'pinned': _isPinned,
-        'authorId': uid,
-        'authorName': userDoc['username'] ?? 'Anonymous',
-        'authorPhotoUrl': photoUrl,
-        'likes': [],
-        'imageUrl': '',
-      };
-
-      final docRef = await FirebaseFirestore.instance.collection('blogs').add(blogData);
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'blogs': FieldValue.arrayUnion([docRef.id])
-      });
+      await BlogService().createBlogWithContent(
+        title: _titleController.text.trim(),
+        description: _descController.text.trim(),
+        contentJson: contentJson,
+        category: _selectedCategory,
+        blogDate: _blogDate,
+        isPinned: _isPinned,
+        imageUrl: '', // You can later update this for image uploads
+      );
 
       Navigator.pop(context); // Close loader
       Navigator.pop(context); // Go back
@@ -80,6 +66,7 @@ class _NewblogState extends State<Newblog> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

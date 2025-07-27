@@ -10,6 +10,13 @@ class UserService {
     return UserModel.fromMap(doc.data()!);
   }
 
+  Future<bool> isFollowing(String currentUid, String targetUid) async {
+    final doc = await _firestore.collection('users').doc(currentUid).get();
+    final following = List<String>.from(doc.data()?['following'] ?? []);
+    return following.contains(targetUid);
+  }
+
+
   Future<void> followUser(String currentUid, String targetUid) async {
     if (currentUid == targetUid) return;
 
@@ -49,12 +56,17 @@ class UserService {
     );
   }
 
-  Future<List<UserModel>> getUsersByIds(List<String> ids) async {
-    if (ids.isEmpty) return [];
-    final query = await _firestore
-        .collection('users')
-        .where('uid', whereIn: ids)
-        .get();
-    return query.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
+  Future<List<Map<String, dynamic>>> getUsersByIds(List<String> uids) async {
+    List<Map<String, dynamic>> users = [];
+
+    for (String uid in uids) {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        data['uid'] = uid;
+        users.add(data);
+      }
+    }
+    return users;
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:blogs_pado/App/models/blog_model.dart';
+import 'package:blogs_pado/App/services/blog_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
@@ -70,24 +71,19 @@ class _EditBlogPageState extends State<EditBlogPage> {
     try {
       final contentJson = _quillController.document.toDelta().toJson();
 
-      final updatedBlog = {
-        'title': _titleController.text.trim(),
-        'description': _descController.text.trim(),
-        'content': contentJson,
-        'timestamp': Timestamp.fromDate(_blogDate),
-        'category': _selectedCategory,
-        'pinned': _isPinned,
-        'lastEdited': Timestamp.now(),
-      };
-
-      await FirebaseFirestore.instance
-          .collection('blogs')
-          .doc(widget.blog.blogId)
-          .update(updatedBlog);
+      await BlogService().updateBlog(
+        blogId: widget.blog.blogId,
+        title: _titleController.text.trim(),
+        description: _descController.text.trim(),
+        contentJson: contentJson,
+        category: _selectedCategory,
+        blogDate: _blogDate,
+        isPinned: _isPinned,
+      );
 
       if (mounted) {
-        Navigator.pop(context);
-        Navigator.pop(context);
+        Navigator.pop(context); // close loader
+        Navigator.pop(context); // go back
       }
     } catch (e) {
       Navigator.pop(context);

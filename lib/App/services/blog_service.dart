@@ -6,28 +6,78 @@ class BlogService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // 📝 Create Blog
-  Future<void> createBlog(BlogModel blog) async {
-    final ref = _firestore.collection('blogs').doc();
-    final currentUser = FirebaseAuth.instance.currentUser;
+  Future<void> createBlogWithContent({
+    required String title,
+    required String description,
+    required List<dynamic> contentJson,
+    required String category,
+    required DateTime blogDate,
+    required bool isPinned,
+    String? imageUrl,
+  }) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final userDoc = await _firestore.collection('users').doc(uid).get();
 
-    await ref.set({
-      ...blog.toMap(),
-      'authorId': currentUser?.uid,
-      'authorName': currentUser?.displayName ?? 'Anonymous',
-      'authorPhotoUrl': '', // or default asset if needed
+    final blogData = {
+      'title': title,
+      'description': description,
+      'content': contentJson,
+      'timestamp': Timestamp.fromDate(blogDate),
+      'category': category,
+      'pinned': isPinned,
+      'authorId': uid,
+      'authorName': userDoc['username'] ?? 'Anonymous',
+      'authorPhotoUrl': userDoc['profilePicUrl'] ?? '',
+      'likes': [],
+      'imageUrl': imageUrl ?? '',
+    };
+
+    final blogRef = await _firestore.collection('blogs').add(blogData);
+
+    await _firestore.collection('users').doc(uid).update({
+      'blogs': FieldValue.arrayUnion([blogRef.id])
     });
   }
 
+ // Update Blog
+  Future<void> updateBlog({
+    required String blogId,
+    required String title,
+    required String description,
+    required List<dynamic> contentJson,
+    required String category,
+    required DateTime blogDate,
+    required bool isPinned,
+  }) async {
+    final updatedData = {
+      'title': title,
+      'description': description,
+      'content': contentJson,
+      'timestamp': Timestamp.fromDate(blogDate),
+      'category': category,
+      'pinned': isPinned,
+      'lastEdited': Timestamp.now(),
+    };
 
-  // ✏️ Edit Blog
-  Future<void> updateBlog(String blogId, Map<String, dynamic> data) async {
-    await _firestore.collection('blogs').doc(blogId).update(data);
+    await FirebaseFirestore.instance
+        .collection('blogs')
+        .doc(blogId)
+        .update(updatedData);
   }
 
   // 🗑 Delete Blog
-  Future<void> deleteBlog(String blogId) async {
-    await _firestore.collection('blogs').doc(blogId).delete();
+  Future<void> deleteBlogWithUserRef(String blogId, String uid) async {
+    final userRef = _firestore.collection('users').doc(uid);
+    final blogRef = _firestore.collection('blogs').doc(blogId);
+
+    await _firestore.runTransaction((transaction) async {
+      transaction.delete(blogRef);
+      transaction.update(userRef, {
+        'blogs': FieldValue.arrayRemove([blogId])
+      });
+    });
   }
+
 
   // 🔄 Toggle Like
   Future<void> toggleLike(String blogId, String uid) async {

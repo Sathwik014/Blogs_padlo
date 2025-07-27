@@ -2,6 +2,7 @@ import 'package:blogs_pado/App/Screens/blog/blog_detail_screen.dart';
 import 'package:blogs_pado/App/Screens/blog/edit_blog_screen.dart';
 import 'package:blogs_pado/App/Screens/comments/comment_screen.dart';
 import 'package:blogs_pado/App/models/blog_model.dart';
+import 'package:blogs_pado/App/services/blog_service.dart';
 import 'package:blogs_pado/App/widgets/follow_tile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,26 +29,6 @@ class _BlogTileState extends State<BlogTile> {
     isLiked = widget.blog.likes.contains(currentUserId);
   }
 
-  void toggleLike() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-
-    final blogRef =
-    FirebaseFirestore.instance.collection('blogs').doc(widget.blog.blogId);
-    final updatedLikes = isLiked
-        ? widget.blog.likes.where((id) => id != uid).toList()
-        : [...widget.blog.likes, uid];
-
-    await blogRef.update({'likes': updatedLikes});
-
-    setState(() {
-      isLiked = !isLiked;
-      widget.blog.likes
-        ..clear()
-        ..addAll(updatedLikes);
-    });
-  }
-
   void deleteBlog(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -61,37 +42,27 @@ class _BlogTileState extends State<BlogTile> {
       ),
     );
 
-    if (confirm == true) {
+    if (confirm != true) return;
+
+    try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) return;
 
-      final blogId = widget.blog.blogId;
-      final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
-      final blogRef = FirebaseFirestore.instance.collection('blogs').doc(blogId);
+      await BlogService().deleteBlogWithUserRef(widget.blog.blogId, uid);
 
-      try {
-        await FirebaseFirestore.instance.runTransaction((transaction) async {
-          transaction.delete(blogRef);
-          transaction.update(userRef, {
-            'blogs': FieldValue.arrayRemove([blogId])
-          });
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Blog deleted")),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Error deleting blog: $e")),
-          );
-        }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Blog deleted")),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error deleting blog: $e")),
+        );
       }
     }
   }
-
 
   void openEditBlog(BuildContext context) {
     Navigator.push(
@@ -190,7 +161,12 @@ class _BlogTileState extends State<BlogTile> {
                     color: Colors.red,
                     size: 16,
                   ),
-                  onPressed: toggleLike,
+                    onPressed: () async {
+                      setState(() {
+                        isLiked = !isLiked; // Just toggle the UI immediately
+                      });
+                      await BlogService().toggleLike(widget.blog.blogId, currentUserId);
+                   }
                 ),
                 Text(widget.blog.likes.length.toString()),
                 const SizedBox(width: 12),
